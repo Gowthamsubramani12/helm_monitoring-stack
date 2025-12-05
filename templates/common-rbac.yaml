@@ -1,0 +1,50 @@
+{{- if .Values.serviceAccount.create -}}
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ include "prom-stack-chart.serviceAccountName" . }}
+  labels:
+    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+{{- end }}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ include "prom-stack-chart.fullname" . }}
+  labels:
+    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+rules:
+  - apiGroups: [""]
+    resources:
+      - nodes
+      - nodes/metrics
+      - services
+      - endpoints
+      - pods
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources:
+      - configmaps
+    verbs: ["get"]
+  - apiGroups:
+      - networking.k8s.io
+    resources:
+      - ingresses
+    verbs: ["get", "list", "watch"]
+  - nonResourceURLs: ["/metrics"]
+    verbs: ["get"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "prom-stack-chart.fullname" . }}
+  labels:
+    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "prom-stack-chart.fullname" . }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "prom-stack-chart.serviceAccountName" . }}
+    namespace: {{ .Release.Namespace }}

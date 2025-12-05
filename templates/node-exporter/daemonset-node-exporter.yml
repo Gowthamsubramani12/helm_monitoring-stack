@@ -1,0 +1,54 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: {{ include "prom-stack-chart.fullname" . }}-node-exporter
+  labels:
+    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+    component: node-exporter
+spec:
+  selector:
+    matchLabels:
+      {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
+      component: node-exporter
+  template:
+    metadata:
+      labels:
+        {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
+        component: node-exporter
+    spec:
+      serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
+      containers:
+        - name: node-exporter
+          image: "{{ .Values.nodeExporter.image.repository }}:{{ .Values.nodeExporter.image.tag }}"
+          imagePullPolicy: {{ .Values.nodeExporter.image.pullPolicy }}
+          args:
+            - "--path.procfs=/host/proc"
+            - "--path.sysfs=/host/sys"
+            - "--path.rootfs=/host/root"
+          ports:
+            - containerPort: 9100
+              name: metrics
+          volumeMounts:
+            - name: proc
+              mountPath: /host/proc
+              readOnly: true
+            - name: sys
+              mountPath: /host/sys
+              readOnly: true
+            - name: root
+              mountPath: /host/root
+              readOnly: true
+          resources:
+            {{- toYaml .Values.nodeExporter.resources | nindent 12 }}
+      hostNetwork: true
+      hostPID: true
+      volumes:
+        - name: proc
+          hostPath:
+            path: /proc
+        - name: sys
+          hostPath:
+            path: /sys
+        - name: root
+          hostPath:
+            path: /

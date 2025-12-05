@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "prom-stack-chart.fullname" . }}-alertmanager
+  labels:
+    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+    component: alertmanager
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
+      component: alertmanager
+  template:
+    metadata:
+      labels:
+        {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
+        component: alertmanager
+    spec:
+      serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
+      containers:
+        - name: alertmanager
+          image: "{{ .Values.alertmanager.image.repository }}:{{ .Values.alertmanager.image.tag }}"
+          imagePullPolicy: {{ .Values.alertmanager.image.pullPolicy }}
+          args:
+            - "--config.file=/etc/alertmanager/alertmanager.yml"
+            - "--storage.path=/alertmanager"
+          ports:
+            - containerPort: 9093
+              name: http
+          volumeMounts:
+            - name: config-volume
+              mountPath: /etc/alertmanager
+          resources:
+            {{- toYaml .Values.alertmanager.resources | nindent 12 }}
+      volumes:
+        - name: config-volume
+          configMap:
+            name: {{ include "prom-stack-chart.fullname" . }}-alertmanager

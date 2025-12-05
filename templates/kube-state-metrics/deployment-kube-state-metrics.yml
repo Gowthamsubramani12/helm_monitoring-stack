@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "prom-stack-chart.fullname" . }}-kube-state-metrics
+  labels:
+    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+    component: kube-state-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
+      component: kube-state-metrics
+  template:
+    metadata:
+      labels:
+        {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
+        component: kube-state-metrics
+    spec:
+      serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
+      containers:
+        - name: kube-state-metrics
+          image: "{{ .Values.kubeStateMetrics.image.repository }}:{{ .Values.kubeStateMetrics.image.tag }}"
+          imagePullPolicy: {{ .Values.kubeStateMetrics.image.pullPolicy }}
+          ports:
+            - containerPort: 8080
+              name: http
+          resources:
+            {{- toYaml .Values.kubeStateMetrics.resources | nindent 12 }}

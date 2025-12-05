@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "prom-stack-chart.fullname" . }}-kube-state-metrics
+  labels:
+    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+    component: kube-state-metrics
+spec:
+  type: ClusterIP
+  ports:
+    - port: 8080
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "prom-stack-chart.selectorLabels" . | nindent 4 }}
+    component: kube-state-metrics
