@@ -26,11 +26,9 @@ spec:
         runAsNonRoot: true
         runAsUser: 10001
       containers:
-        {{- $loki := .Values.loki | default dict }}
-        {{- $image := $loki.image | default dict }}
         - name: loki
-          image: "{{ $image.repository | default "grafana/loki" }}:{{ $image.tag | default "2.8.2" }}"
-          imagePullPolicy: {{ $image.pullPolicy | default "IfNotPresent" }}
+          image: "{{ .Values.loki.image.repository }}:{{ .Values.loki.image.tag }}"
+          imagePullPolicy: {{ .Values.loki.image.pullPolicy }}
           ports:
             - name: http-metrics
               containerPort: 3100

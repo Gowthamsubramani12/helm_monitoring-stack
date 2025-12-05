@@ -5,13 +5,11 @@ metadata:
   labels:
     {{- include "prom-stack-chart.labels" . | nindent 4 }}
 spec:
-  {{- $grafana := .Values.grafana | default dict }}
-  {{- $persistence := $grafana.persistence | default dict }}
   accessModes:
-    - {{ $persistence.accessMode | default "ReadWriteOnce" | quote }}
+    - {{ .Values.grafana.persistence.accessMode | quote }}
   resources:
     requests:
-      storage: {{ $persistence.size | default "10Gi" | quote }}
-  {{- if $persistence.storageClass }}
-  storageClassName: {{ $persistence.storageClass | quote }}
+      storage: {{ .Values.grafana.persistence.size | quote }}
+  {{- if .Values.grafana.persistence.storageClass }}
+  storageClassName: {{ .Values.grafana.persistence.storageClass | quote }}
   {{- end }}
