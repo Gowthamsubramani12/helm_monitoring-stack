@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "prom-stack-chart.fullname" . }}-prometheus
+  labels:
+    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+spec:
+  {{- $prometheus := .Values.prometheus | default dict }}
+  {{- $persistence := $prometheus.persistence | default dict }}
+  accessModes:
+    - {{ $persistence.accessMode | default "ReadWriteOnce" | quote }}
+  resources:
+    requests:
+      storage: {{ $persistence.size | default "8Gi" | quote }}
+  {{- if $persistence.storageClass }}
+  storageClassName: {{ $persistence.storageClass | quote }}
+  {{- end }}

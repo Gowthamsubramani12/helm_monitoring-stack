@@ -58,6 +58,8 @@ grafana:
     size: 10Gi
     storageClass: gp2
     accessMode: ReadWriteOnce
+  datasources: # Added this block to prevent secret nil pointer
+    enabled: true
 
 # Loki Configuration (NEW)
 loki:
