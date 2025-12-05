@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "prom-stack-chart.fullname" . }}-grafana
+  labels:
+    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - {{ .Values.grafana.persistence.accessMode | quote }}
+  resources:
+    requests:
+      storage: {{ .Values.grafana.persistence.size | quote }}
+  {{- if .Values.grafana.persistence.storageClass }}
+  storageClassName: {{ .Values.grafana.persistence.storageClass | quote }}
+  {{- end }}

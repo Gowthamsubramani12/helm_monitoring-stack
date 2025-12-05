@@ -1,29 +1,32 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   name: {{ include "prom-stack-chart.fullname" . }}-alertmanager
   labels:
     {{- include "prom-stack-chart.labels" . | nindent 4 }}
-    component: alertmanager
 spec:
+  serviceName: {{ include "prom-stack-chart.fullname" . }}-alertmanager-headless
   replicas: 1
   selector:
     matchLabels:
       {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
-      component: alertmanager
+      app.kubernetes.io/component: alertmanager
   template:
     metadata:
       labels:
         {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
-        component: alertmanager
+        app.kubernetes.io/component: alertmanager
     spec:
       serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
+      securityContext:
+        fsGroup: 65534
+        runAsUser: 65534
       containers:
         - name: alertmanager
           image: "{{ .Values.alertmanager.image.repository }}:{{ .Values.alertmanager.image.tag }}"
           imagePullPolicy: {{ .Values.alertmanager.image.pullPolicy }}
           args:
-            - "--config.file=/etc/alertmanager/alertmanager.yml"
+            - "--config.file=/etc/alertmanager/config.yml"
             - "--storage.path=/alertmanager"
           ports:
             - containerPort: 9093
@@ -31,9 +34,29 @@ spec:
           volumeMounts:
             - name: config-volume
               mountPath: /etc/alertmanager
-          resources:
-            {{- toYaml .Values.alertmanager.resources | nindent 12 }}
+            - name: storage
+              mountPath: /alertmanager
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 30
+            timeoutSeconds: 30
       volumes:
         - name: config-volume
           configMap:
             name: {{ include "prom-stack-chart.fullname" . }}-alertmanager
+  volumeClaimTemplates:
+    - metadata:
+        name: storage
+      spec:
+        accessModes: [ "ReadWriteOnce" ]
+        resources:
+          requests:
+            storage: 2Gi
