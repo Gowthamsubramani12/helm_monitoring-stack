@@ -18,8 +18,10 @@ spec:
       serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
       containers:
         - name: promtail
-          image: "{{ .Values.promtail.image.repository }}:{{ .Values.promtail.image.tag }}"
-          imagePullPolicy: {{ .Values.promtail.image.pullPolicy }}
+          {{- $promtail := .Values.promtail | default dict }}
+          {{- $image := $promtail.image | default dict }}
+          image: "{{ $image.repository | default "grafana/promtail" }}:{{ $image.tag | default "2.8.2" }}"
+          imagePullPolicy: {{ $image.pullPolicy | default "IfNotPresent" }}
           args:
             - "-config.file=/etc/promtail/promtail.yaml"
           volumeMounts:

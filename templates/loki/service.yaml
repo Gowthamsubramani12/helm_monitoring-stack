@@ -5,13 +5,15 @@ metadata:
   labels:
     {{- include "prom-stack-chart.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.loki.service.type }}
+  {{- $loki := .Values.loki | default dict }}
+  {{- $service := $loki.service | default dict }}
+  type: {{ $service.type | default "ClusterIP" }}
   ports:
-    - port: {{ .Values.loki.service.port }}
+    - port: {{ $service.port | default 3100 }}
       targetPort: http-metrics
       protocol: TCP
       name: http-metrics
-    - port: {{ .Values.loki.service.memberlistPort }}
+    - port: {{ $service.memberlistPort | default 7946 }}
       targetPort: memberlist
       protocol: TCP
       name: memberlist
