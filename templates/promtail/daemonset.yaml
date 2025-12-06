@@ -36,6 +36,9 @@ spec:
             - name: pods
               mountPath: /var/log/pods
               readOnly: true
+            - name: promtail-secret
+              mountPath: /etc/promtail/secrets
+              readOnly: true
           env:
             - name: HOSTNAME
               valueFrom:
@@ -56,3 +59,6 @@ spec:
         - name: pods
           hostPath:
             path: /var/log/pods
+        - name: promtail-secret
+          secret:
+            secretName: loki-promtail

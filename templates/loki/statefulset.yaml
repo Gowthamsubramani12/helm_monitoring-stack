@@ -43,6 +43,9 @@ spec:
               mountPath: /etc/loki
             - name: storage
               mountPath: /data
+            - name: loki-secret
+              mountPath: /etc/loki/secrets
+              readOnly: true
           readinessProbe:
             httpGet:
               path: /ready
@@ -61,3 +64,6 @@ spec:
             name: loki
         - name: storage
           emptyDir: {}
+        - name: loki-secret
+          secret:
+            secretName: loki

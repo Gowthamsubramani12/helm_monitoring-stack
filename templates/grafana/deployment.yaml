@@ -25,9 +25,20 @@ spec:
               protocol: TCP
           env:
             - name: GF_SECURITY_ADMIN_USER
-              value: {{ .Values.grafana.adminUser | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: grafana
+                  key: admin-user
             - name: GF_SECURITY_ADMIN_PASSWORD
-              value: {{ .Values.grafana.adminPassword | quote }}
+              valueFrom:
+                secretKeyRef:
+                  name: grafana
+                  key: admin-password
+            - name: GF_SECURITY_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: grafana
+                  key: grafana-secret-key
           volumeMounts:
             - name: storage
               mountPath: /var/lib/grafana

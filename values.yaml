@@ -10,6 +10,7 @@ grafana:
     pullPolicy: IfNotPresent
   adminUser: admin
   adminPassword: admin123
+  secretKey: "SW2YcwTIb9zpOOhoPsMm"
   service:
     type: NodePort
     port: 80
@@ -33,11 +34,11 @@ alertmanager:
     pullPolicy: IfNotPresent
   resources: {}
   smtp:
-    host: smtp.gmail.com
+    host: smtp.office365.com
     port: 587
-    from: alerts@yourcompany.com
-    username: your-smtp-username
-    password: your-smtp-password
+    from: devops.hi1@isolve.global
+    username: devops.hi1@isolve.global
+    password: iSolve123$
     requireTLS: true
 
 # Loki Configuration
@@ -47,6 +48,7 @@ loki:
     tag: "2.9.3"
     pullPolicy: IfNotPresent
   resources: {}
+  secretData: "loki-auth-token-changeme"
 
 # Promtail Configuration
 promtail:
@@ -55,6 +57,7 @@ promtail:
     tag: "2.9.3"
     pullPolicy: IfNotPresent
   resources: {}
+  secretData: "promtail-token-changeme"
 
 # Node Exporter Configuration
 nodeExporter:
