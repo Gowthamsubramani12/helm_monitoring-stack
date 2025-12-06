@@ -3,13 +3,13 @@ entries:
   prom-stack-chart:
   - apiVersion: v2
     appVersion: 1.0.0
-    created: "2025-12-06T13:54:35.9654541+05:30"
+    created: "2025-12-06T14:56:25.7921302+05:30"
     description: A Helm chart for a complete monitoring stack (Prometheus, Grafana,
       Loki, Promtail)
     digest: 28a50ae892a666f75d59322870db3baf8cf3ad354c066d67ed4dacedc47fc51e
     name: prom-stack-chart
     type: application
     urls:
-    - https://github.com/Gowthamsubramani12/helm_monitoring-stack/prom-stack-chart-0.1.0.tgz
+    - https://Gowthamsubramani12.github.io/helm_monitoring-stack/prom-stack-chart-0.1.0.tgz
     version: 0.1.0
-generated: "2025-12-06T13:54:35.9514951+05:30"
+generated: "2025-12-06T14:56:25.7761593+05:30"
