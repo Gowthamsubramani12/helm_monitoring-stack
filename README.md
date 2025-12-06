@@ -1,5 +1,5 @@
 📦 Add Helm Repository
-helm repo add monitoring https://Gowthamsubramani12.github.io/helm_monitoring-stack/
+helm repo add monitoring https://Gowthamsubramani12.github.io/helm_charts/
 
 
 Verify repo:
