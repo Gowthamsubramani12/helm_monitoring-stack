@@ -1,111 +1,81 @@
-# Default values for prom-stack-chart.
-# This is a YAML-formatted file.
-# Declare variables to be passed into your templates.
-
-nameOverride: ""
-fullnameOverride: ""
-
-serviceAccount:
-  create: true
-  name: ""
-
-# Prometheus Server Configuration
-prometheus:
-  image:
-    repository: prom/prometheus
-    tag: v2.45.0
-    pullPolicy: IfNotPresent
-  retention: 15d
-  service:
-    type: ClusterIP
-    port: 80
-  resources: {}
-  persistence:
-    enabled: true
-    size: 8Gi
-    storageClass: gp2
-    accessMode: ReadWriteOnce
-
-# Alertmanager Configuration
-alertmanager:
-  image:
-    repository: prom/alertmanager
-    tag: v0.25.0
-    pullPolicy: IfNotPresent
-  service:
-    type: ClusterIP
-    port: 9093
-  resources: {}
-  persistence: # Although StatefulSet uses volumeClaimTemplates, we can parameterize size/class
-    size: 2Gi
-    storageClass: gp2
+# Default values for prom-stack-chart
+# All resource names are hardcoded in templates
+# Only configure image versions, resources, and other parameters here
 
 # Grafana Configuration
 grafana:
   image:
     repository: grafana/grafana
-    tag: 10.0.0
+    tag: "10.2.2"
     pullPolicy: IfNotPresent
   adminUser: admin
-  adminPassword: password
+  adminPassword: admin123
   service:
     type: NodePort
-    port: 3000
-    nodePort: 30503 # Matching your cluster
+    port: 80
+    nodePort: 30503
   resources: {}
-  persistence:
-    enabled: true
-    size: 10Gi
-    storageClass: gp2
-    accessMode: ReadWriteOnce
 
-# Loki Configuration (NEW)
+# Prometheus Server Configuration
+prometheus:
+  image:
+    repository: prom/prometheus
+    tag: "v2.48.0"
+    pullPolicy: IfNotPresent
+  retention: 15d
+  resources: {}
+
+# Alertmanager Configuration
+alertmanager:
+  image:
+    repository: prom/alertmanager
+    tag: "v0.26.0"
+    pullPolicy: IfNotPresent
+  resources: {}
+  smtp:
+    host: smtp.gmail.com
+    port: 587
+    from: alerts@yourcompany.com
+    username: your-smtp-username
+    password: your-smtp-password
+    requireTLS: true
+
+# Loki Configuration
 loki:
   image:
     repository: grafana/loki
-    tag: 2.8.2
+    tag: "2.9.3"
     pullPolicy: IfNotPresent
-  service:
-    type: ClusterIP
-    port: 3100
-    memberlistPort: 7946
+  resources: {}
 
-# Promtail Configuration (NEW)
+# Promtail Configuration
 promtail:
   image:
     repository: grafana/promtail
-    tag: 2.8.2
+    tag: "2.9.3"
     pullPolicy: IfNotPresent
+  resources: {}
 
 # Node Exporter Configuration
 nodeExporter:
   image:
     repository: quay.io/prometheus/node-exporter
-    tag: v1.6.0
+    tag: "v1.7.0"
     pullPolicy: IfNotPresent
-  service:
-    type: ClusterIP
-    port: 9100
   resources: {}
 
 # Kube State Metrics Configuration
 kubeStateMetrics:
   image:
     repository: registry.k8s.io/kube-state-metrics/kube-state-metrics
-    tag: v2.9.2
+    tag: "v2.10.1"
     pullPolicy: IfNotPresent
-  service:
-    type: ClusterIP
-    port: 8080
   resources: {}
 
 # Pushgateway Configuration
 pushgateway:
   image:
     repository: prom/pushgateway
-    tag: v1.6.0
+    tag: "v1.6.2"
     pullPolicy: IfNotPresent
-  service:
-    type: ClusterIP
-    port: 9091
   resources: {}

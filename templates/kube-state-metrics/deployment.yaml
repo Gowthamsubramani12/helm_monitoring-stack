@@ -1,23 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "prom-stack-chart.fullname" . }}-kube-state-metrics
+  name: prometheus-kube-state-metrics
+  namespace: monitoring
   labels:
-    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+    app: prometheus
     component: kube-state-metrics
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
+      app: prometheus
       component: kube-state-metrics
   template:
     metadata:
       labels:
-        {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
+        app: prometheus
         component: kube-state-metrics
     spec:
-      serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
+      serviceAccountName: prometheus
       containers:
         - name: kube-state-metrics
           image: "{{ .Values.kubeStateMetrics.image.repository }}:{{ .Values.kubeStateMetrics.image.tag }}"
@@ -25,5 +26,18 @@ spec:
           ports:
             - containerPort: 8080
               name: http
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            timeoutSeconds: 5
           resources:
             {{- toYaml .Values.kubeStateMetrics.resources | nindent 12 }}

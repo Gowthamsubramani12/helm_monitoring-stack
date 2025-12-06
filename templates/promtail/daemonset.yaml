@@ -1,33 +1,36 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: {{ include "prom-stack-chart.fullname" . }}-promtail
+  name: loki-promtail
+  namespace: monitoring
   labels:
-    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+    app: promtail
 spec:
   selector:
     matchLabels:
-      {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: promtail
+      app: promtail
   template:
     metadata:
       labels:
-        {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: promtail
+        app: promtail
     spec:
-      serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
+      serviceAccountName: prometheus
       containers:
         - name: promtail
           image: "{{ .Values.promtail.image.repository }}:{{ .Values.promtail.image.tag }}"
           imagePullPolicy: {{ .Values.promtail.image.pullPolicy }}
           args:
             - "-config.file=/etc/promtail/promtail.yaml"
+          ports:
+            - containerPort: 9080
+              name: http-metrics
+              protocol: TCP
           volumeMounts:
             - name: config
               mountPath: /etc/promtail
             - name: run
               mountPath: /run/promtail
-            - name: docker
+            - name: containers
               mountPath: /var/lib/docker/containers
               readOnly: true
             - name: pods
@@ -38,17 +41,16 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: spec.nodeName
-          ports:
-            - containerPort: 9080
-              name: http-metrics
+          resources:
+            {{- toYaml .Values.promtail.resources | nindent 12 }}
       volumes:
         - name: config
           configMap:
-            name: {{ include "prom-stack-chart.fullname" . }}-promtail
+            name: loki-promtail
         - name: run
           hostPath:
             path: /run/promtail
-        - name: docker
+        - name: containers
           hostPath:
             path: /var/lib/docker/containers
         - name: pods

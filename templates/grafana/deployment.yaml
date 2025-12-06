@@ -1,23 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "prom-stack-chart.fullname" . }}-grafana
+  name: grafana
+  namespace: monitoring
   labels:
-    {{- include "prom-stack-chart.labels" . | nindent 4 }}
-    component: grafana
+    app: grafana
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
-      component: grafana
+      app: grafana
   template:
     metadata:
       labels:
-        {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
-        component: grafana
+        app: grafana
     spec:
-      serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
       containers:
         - name: grafana
           image: "{{ .Values.grafana.image.repository }}:{{ .Values.grafana.image.tag }}"
@@ -25,6 +22,7 @@ spec:
           ports:
             - containerPort: 3000
               name: http
+              protocol: TCP
           env:
             - name: GF_SECURITY_ADMIN_USER
               value: {{ .Values.grafana.adminUser | quote }}
@@ -38,4 +36,4 @@ spec:
       volumes:
         - name: storage
           persistentVolumeClaim:
-            claimName: {{ include "prom-stack-chart.fullname" . }}-grafana
+            claimName: grafana

@@ -1,26 +1,29 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "prom-stack-chart.fullname" . }}-alertmanager
+  name: prometheus-alertmanager
+  namespace: monitoring
   labels:
-    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+    app: prometheus
+    component: alertmanager
 spec:
-  serviceName: {{ include "prom-stack-chart.fullname" . }}-alertmanager-headless
+  serviceName: prometheus-alertmanager-headless
   replicas: 1
   selector:
     matchLabels:
-      {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: alertmanager
+      app: prometheus
+      component: alertmanager
   template:
     metadata:
       labels:
-        {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: alertmanager
+        app: prometheus
+        component: alertmanager
     spec:
-      serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
+      serviceAccountName: prometheus
       securityContext:
         fsGroup: 65534
         runAsUser: 65534
+        runAsNonRoot: true
       containers:
         - name: alertmanager
           image: "{{ .Values.alertmanager.image.repository }}:{{ .Values.alertmanager.image.tag }}"
@@ -28,35 +31,29 @@ spec:
           args:
             - "--config.file=/etc/alertmanager/config.yml"
             - "--storage.path=/alertmanager"
+            - "--web.listen-address=:9093"
           ports:
             - containerPort: 9093
               name: http
+              protocol: TCP
           volumeMounts:
-            - name: config-volume
+            - name: config
               mountPath: /etc/alertmanager
             - name: storage
               mountPath: /alertmanager
-          readinessProbe:
-            httpGet:
-              path: /-/ready
-              port: http
-            initialDelaySeconds: 30
-            timeoutSeconds: 30
-          livenessProbe:
-            httpGet:
-              path: /-/healthy
-              port: http
-            initialDelaySeconds: 30
-            timeoutSeconds: 30
+          resources:
+            {{- toYaml .Values.alertmanager.resources | nindent 12 }}
       volumes:
-        - name: config-volume
+        - name: config
           configMap:
-            name: {{ include "prom-stack-chart.fullname" . }}-alertmanager
+            name: prometheus-alertmanager
   volumeClaimTemplates:
     - metadata:
         name: storage
       spec:
-        accessModes: [ "ReadWriteOnce" ]
+        accessModes:
+          - ReadWriteOnce
         resources:
           requests:
             storage: 2Gi
+        storageClassName: gp3

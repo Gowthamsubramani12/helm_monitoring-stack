@@ -1,24 +1,21 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ include "prom-stack-chart.fullname" . }}-loki
+  name: loki
+  namespace: monitoring
   labels:
-    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+    app: loki
 spec:
-  podManagementPolicy: OrderedReady
+  serviceName: loki-headless
   replicas: 1
+  podManagementPolicy: OrderedReady
   selector:
     matchLabels:
-      {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: loki
-  serviceName: {{ include "prom-stack-chart.fullname" . }}-loki-headless
-  updateStrategy:
-    type: RollingUpdate
+      app: loki
   template:
     metadata:
       labels:
-        {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: loki
+        app: loki
     spec:
       securityContext:
         fsGroup: 10001
@@ -29,9 +26,14 @@ spec:
         - name: loki
           image: "{{ .Values.loki.image.repository }}:{{ .Values.loki.image.tag }}"
           imagePullPolicy: {{ .Values.loki.image.pullPolicy }}
+          args:
+            - "-config.file=/etc/loki/loki.yaml"
           ports:
             - name: http-metrics
               containerPort: 3100
+              protocol: TCP
+            - name: grpc
+              containerPort: 9095
               protocol: TCP
             - name: memberlist
               containerPort: 7946
@@ -51,10 +53,11 @@ spec:
               path: /ready
               port: http-metrics
             initialDelaySeconds: 45
-            timeoutSeconds: 1
+          resources:
+            {{- toYaml .Values.loki.resources | nindent 12 }}
       volumes:
         - name: config
           configMap:
-            name: {{ include "prom-stack-chart.fullname" . }}-loki
+            name: loki
         - name: storage
           emptyDir: {}

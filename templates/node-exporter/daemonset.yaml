@@ -1,22 +1,24 @@
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
-  name: {{ include "prom-stack-chart.fullname" . }}-node-exporter
+  name: prometheus-prometheus-node-exporter
+  namespace: monitoring
   labels:
-    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+    app: prometheus
     component: node-exporter
 spec:
   selector:
     matchLabels:
-      {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
+      app: prometheus
       component: node-exporter
   template:
     metadata:
       labels:
-        {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
+        app: prometheus
         component: node-exporter
     spec:
-      serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
+      hostNetwork: true
+      hostPID: true
       containers:
         - name: node-exporter
           image: "{{ .Values.nodeExporter.image.repository }}:{{ .Values.nodeExporter.image.tag }}"
@@ -25,9 +27,11 @@ spec:
             - "--path.procfs=/host/proc"
             - "--path.sysfs=/host/sys"
             - "--path.rootfs=/host/root"
+            - "--web.listen-address=:9100"
           ports:
             - containerPort: 9100
               name: metrics
+              protocol: TCP
           volumeMounts:
             - name: proc
               mountPath: /host/proc
@@ -38,10 +42,9 @@ spec:
             - name: root
               mountPath: /host/root
               readOnly: true
+              mountPropagation: HostToContainer
           resources:
             {{- toYaml .Values.nodeExporter.resources | nindent 12 }}
-      hostNetwork: true
-      hostPID: true
       volumes:
         - name: proc
           hostPath:

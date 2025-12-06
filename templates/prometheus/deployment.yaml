@@ -1,47 +1,48 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "prom-stack-chart.fullname" . }}-prometheus
+  name: prometheus-server
+  namespace: monitoring
   labels:
-    {{- include "prom-stack-chart.labels" . | nindent 4 }}
-    app.kubernetes.io/component: prometheus
+    app: prometheus
+    component: server
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
-      app.kubernetes.io/component: prometheus
+      app: prometheus
+      component: server
   template:
     metadata:
       labels:
-        {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
-        app.kubernetes.io/component: prometheus
+        app: prometheus
+        component: server
     spec:
-      serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
+      serviceAccountName: prometheus
       containers:
         - name: prometheus
-          {{- $prometheus := .Values.prometheus | default dict }}
-          {{- $image := $prometheus.image | default dict }}
-          image: "{{ $image.repository | default "prom/prometheus" }}:{{ $image.tag | default "v2.45.0" }}"
-          imagePullPolicy: {{ $image.pullPolicy | default "IfNotPresent" }}
+          image: "{{ .Values.prometheus.image.repository }}:{{ .Values.prometheus.image.tag }}"
+          imagePullPolicy: {{ .Values.prometheus.image.pullPolicy }}
           args:
             - "--config.file=/etc/prometheus/prometheus.yml"
             - "--storage.tsdb.path=/prometheus"
-            - "--storage.tsdb.retention.time={{ $prometheus.retention | default "15d" }}"
+            - "--storage.tsdb.retention.time=30d"
+            - "--web.enable-lifecycle"
           ports:
             - containerPort: 9090
               name: http
+              protocol: TCP
           volumeMounts:
-            - name: config-volume
+            - name: config
               mountPath: /etc/prometheus
-            - name: storage-volume
+            - name: storage
               mountPath: /prometheus
           resources:
-            {{- toYaml ($prometheus.resources | default dict) | nindent 12 }}
+            {{- toYaml .Values.prometheus.resources | nindent 12 }}
       volumes:
-        - name: config-volume
+        - name: config
           configMap:
-            name: {{ include "prom-stack-chart.fullname" . }}-prometheus
-        - name: storage-volume
+            name: prometheus-server
+        - name: storage
           persistentVolumeClaim:
-            claimName: {{ include "prom-stack-chart.fullname" . }}-prometheus
+            claimName: prometheus-server

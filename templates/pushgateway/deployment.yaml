@@ -1,23 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "prom-stack-chart.fullname" . }}-pushgateway
+  name: prometheus-prometheus-pushgateway
+  namespace: monitoring
   labels:
-    {{- include "prom-stack-chart.labels" . | nindent 4 }}
+    app: prometheus
     component: pushgateway
 spec:
   replicas: 1
   selector:
     matchLabels:
-      {{- include "prom-stack-chart.selectorLabels" . | nindent 6 }}
+      app: prometheus
       component: pushgateway
   template:
     metadata:
       labels:
-        {{- include "prom-stack-chart.selectorLabels" . | nindent 8 }}
+        app: prometheus
         component: pushgateway
     spec:
-      serviceAccountName: {{ include "prom-stack-chart.serviceAccountName" . }}
       containers:
         - name: pushgateway
           image: "{{ .Values.pushgateway.image.repository }}:{{ .Values.pushgateway.image.tag }}"
@@ -25,5 +25,18 @@ spec:
           ports:
             - containerPort: 9091
               name: http
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /-/healthy
+              port: http
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /-/ready
+              port: http
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
           resources:
             {{- toYaml .Values.pushgateway.resources | nindent 12 }}

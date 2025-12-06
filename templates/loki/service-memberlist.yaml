@@ -1,16 +1,16 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: loki
+  name: loki-memberlist
   namespace: monitoring
   labels:
     app: loki
 spec:
-  type: ClusterIP
+  clusterIP: None
   ports:
-    - port: 3100
-      targetPort: http-metrics
+    - port: 7946
+      targetPort: memberlist
       protocol: TCP
-      name: http-metrics
+      name: memberlist
   selector:
     app: loki
